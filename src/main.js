@@ -18,13 +18,14 @@ const loadMoreBtn = document.querySelector('.load-more-btn');
 
 let currentQuery = '';
 let currentPage = 1;
+
 const PER_PAGE = 15;
 
 form.addEventListener('submit', onSearch);
 loadMoreBtn.addEventListener('click', onLoadMore);
 
-async function onSearch(e) {
-  e.preventDefault();
+async function onSearch(event) {
+  event.preventDefault();
 
   currentQuery = input.value.trim();
 
@@ -49,19 +50,30 @@ async function onSearch(e) {
       iziToast.error({
         message:
           'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
       });
       return;
     }
 
     createGallery(data.hits);
 
-    if (data.totalHits > PER_PAGE) {
-      showLoadMoreButton();
-    }
+    const totalPages = Math.ceil(data.totalHits / PER_PAGE);
 
+    if (currentPage < totalPages) {
+      showLoadMoreButton();
+    } else {
+      hideLoadMoreButton();
+
+      iziToast.info({
+        message:
+          "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
+    }
   } catch (error) {
     iziToast.error({
       message: 'Something went wrong. Please try again later.',
+      position: 'topRight',
     });
   } finally {
     hideLoader();
@@ -72,6 +84,7 @@ async function onSearch(e) {
 async function onLoadMore() {
   currentPage++;
 
+  hideLoadMoreButton();
   showLoader();
 
   try {
@@ -81,12 +94,15 @@ async function onLoadMore() {
 
     const totalPages = Math.ceil(data.totalHits / PER_PAGE);
 
-    if (currentPage >= totalPages) {
+    if (currentPage < totalPages) {
+      showLoadMoreButton();
+    } else {
       hideLoadMoreButton();
 
       iziToast.info({
         message:
           "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
       });
     }
 
@@ -100,10 +116,10 @@ async function onLoadMore() {
         behavior: 'smooth',
       });
     }
-
   } catch (error) {
     iziToast.error({
       message: 'Something went wrong. Please try again later.',
+      position: 'topRight',
     });
   } finally {
     hideLoader();
